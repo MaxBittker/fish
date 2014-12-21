@@ -12,9 +12,9 @@
  
 
   
-  var mojulo = new Mojulo('0', document.getElementById('playground-display'));
+  var ocean = new Ocean('0', document.getElementById('playground-display'));
 
 
 
-  mojulo.play();
+  ocean.play();
 })();
