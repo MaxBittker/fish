@@ -19,11 +19,128 @@ function fish(x, y){
       // Add methods like this.  All Person objects will be able to invoke this
       fish.prototype = {
 
-        swim: function() {
+        getClosestWall: function(){
+
+        var wallpoint = [0,0];
+        var workingvector = [0,0];
+
+        if( this.x>(width/2) ) //on right side
+          workingvector[0] = width-this.x;
+        else
+          workingvector[0] = -this.x; //on the left side
+
+        if( this.y>(height/2) ) //on bottom side
+          workingvector[1] = height-this.y;
+        else
+          workingvector[1] = -this.y;
+
+        if( Math.abs(workingvector[0])<Math.abs(workingvector[1])) //closer to a vertical wall
+        {
+          wallpoint[0] = (workingvector[0]>0) ? width : 0;
+          wallpoint[1] = this.y;
+        }
+        else //closer to a horizontal wall
+        {
+         wallpoint[1] = (workingvector[1]>0) ? height : 0;
+         wallpoint[0] = this.x;
+        }
+
+        return(wallpoint);
+        },
+
+        getDistance: function(point){
+        var distance = Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2));
+        return(distance);
+        },
+
+        swim: function(listOfFish) {
+          var distance = [0,0];
+         // var distance_x=0;
+         // var distance_y=0;
+          // var afish;
+          // for afish in listOfFish
+          //   {
+          //     distance_x =(this.x-afish.x);
+          //     distance_y =(this.y-afish.y);
+          //     if( Math.sqrt(Math.pow(distance_x,2) + Math.pow(distance_y,2))<30 ) //closer than 10 units
+          //       this.dx = (distance_x>0) ? 1 : -1; 
+          //       this.dy = (distance_y>0) ? 1 : -1;
+          //   }
+          var tempFish;
+          var closestThing; 
+          var closestPoint; 
+          var closestDistance = 999999; 
+
+          for(var i=0; i<listOfFish.length; i++){
+            tempFish = listOfFish[i];
+           
+            if( this.getDistance([tempFish.x,tempFish.y]) < closestDistance); //TODO delay sqrt for perfomance
+              { closestDistance = this.getDistance([tempFish.x,tempFish.y]);
+                closestThing = listOfFish[i];
+              }
+
+          }
+          closestPoint = [closestThing.x,closestThing.y];
+
+          wallpoint = this.getClosestWall();
+
+          if(this.getDistance(wallpoint) <= closestDistance)
+            closestPoint = wallpoint;
+          theta = Math.atan(closestPoint[1],closestPoint[0]);
+          degrees = ((theta * (180/Math.PI)) + 360 + 180 - (45/2) )%360; //pad, flip, offset, and convert
+          segment = Math.floor(degrees/45); 
+
+          switch(segment) {
+              case 0:
+                  this.dx =  1;
+                  this.dy =  0;
+                  break;
+              case 1:
+                  this.dx =  1;
+                  this.dy =  1;
+                  break;
+              case 2:
+                  this.dx =  0;
+                  this.dy =  1;
+                  break;
+              case 3:
+                  this.dx = -1;
+                  this.dy = 1;
+                  break;
+              case 4:
+                  this.dx = -1;
+                  this.dy =  0;
+                  break;
+              case 5:
+                  this.dx = -1;
+                  this.dy = -1;
+                  break;
+              case 6:
+                  this.dx =  0;
+                  this.dy = -1;
+                  break;
+              case 7:
+                  this.dx =  1;
+                  this.dy = -1;
+                  break;
+              case 8:
+                  this.dx =  1;
+                  this.dy =  0;
+                  break;
+              default:
+                   alert("code 9! alert!");
+                   break;
+          }
+
+
+          // this.dx = (this.dx>0) ? 1 : -1; 
+          // this.dy = (this.dy>0) ? 1 : -1;
+
           this.x += this.dx;
-          this.y += this.dy;
+          this.y += this.dy;  
           },
 
+        
         draw: function(imageData,scale){
           
             for (var sx = 0; sx < scale; sx++) {
@@ -52,7 +169,7 @@ function fish(x, y){
     var x = 50;
     var y = 50;
 
-    for (var i = 0; i < number; i++) { 
+    for (var i = 0; i < number; i++) { //spawn n fish and add them to list
       x = Math.floor(Math.random()*(width-1));
       y = Math.floor(Math.random()*(height-1));
       //check if spot is full please
@@ -66,7 +183,7 @@ function fish(x, y){
     }
 
   function Ocean(equation, canvas) {
-    this.Fishes    = init(10); // spawn new fish
+    this.Fishes    = init(155); // spawn new fish
     this.singleFish = new fish(50,50);
     this.canvas    = canvas;
     this.scale     = canvas.getAttribute('width') / width;
@@ -129,9 +246,8 @@ function fish(x, y){
         for (var y = 0; y < height; y++) {
           // Set the x, y, r and A variables
         
-
           // Get the color
-          var color = ((x*y)*this.frame%20)+100;
+          var color = ((x*y)*this.frame%100)+100;
           var R = (color & 0xff0000) >>> 16;
           var G = (color & 0x00ff00) >>> 8;
           var B = (color & 0x0000ff) >>> 0;
@@ -147,11 +263,13 @@ function fish(x, y){
           }
         }
       }
+
       var tempFish;
+
       for(var i=0; i<this.Fishes.length; i++){
-      tempFish = this.Fishes[i];
-      tempFish.swim();
-      this.drawFish(tempFish.x,tempFish.y,55555);
+        tempFish = this.Fishes[i];
+        tempFish.swim(this.Fishes);
+        this.drawFish(tempFish.x,tempFish.y,55555);
       }
 
       // this.singleFish.swim(1);
