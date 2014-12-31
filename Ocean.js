@@ -6,7 +6,8 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var interval = 1000 / (10 /* fps */);
+  var population = 100;
+  var interval = 1000 / (15 /* fps */);
 
 function fish(x, y){
          // Add object properties like this
@@ -14,7 +15,8 @@ function fish(x, y){
          this.y = y;
          this.dx = 1;//smarter later
          this.dy = 1;
-      }
+         this.segment =  Math.floor(Math.random() * 7);
+      } 
 
       // Add methods like this.  All Person objects will be able to invoke this
       fish.prototype = {
@@ -24,17 +26,17 @@ function fish(x, y){
         var wallpoint = [0,0];
         var workingvector = [0,0];
 
-        if( this.x>(width/2) ) //on right side
+        if( this.x > (width/2) ) //on right side
           workingvector[0] = width-this.x;
         else
           workingvector[0] = -this.x; //on the left side
 
-        if( this.y>(height/2) ) //on bottom side
+        if( this.y > (height/2) ) //on bottom side
           workingvector[1] = height-this.y;
         else
           workingvector[1] = -this.y;
 
-        if( Math.abs(workingvector[0])<Math.abs(workingvector[1])) //closer to a vertical wall
+        if( Math.abs(workingvector[0]) < Math.abs(workingvector[1])) //closer to a vertical wall
         {
           wallpoint[0] = (workingvector[0]>0) ? width : 0;
           wallpoint[1] = this.y;
@@ -48,6 +50,11 @@ function fish(x, y){
         return(wallpoint);
         },
 
+        // checkOccupied: function(listOfFish){
+        // var distance = Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2));
+        // return(distance);
+        // },
+
         getDistance: function(point){
         var distance = Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2));
         return(distance);
@@ -55,42 +62,66 @@ function fish(x, y){
 
         swim: function(listOfFish) {
           var distance = [0,0];
-         // var distance_x=0;
-         // var distance_y=0;
-          // var afish;
-          // for afish in listOfFish
-          //   {
-          //     distance_x =(this.x-afish.x);
-          //     distance_y =(this.y-afish.y);
-          //     if( Math.sqrt(Math.pow(distance_x,2) + Math.pow(distance_y,2))<30 ) //closer than 10 units
-          //       this.dx = (distance_x>0) ? 1 : -1; 
-          //       this.dy = (distance_y>0) ? 1 : -1;
-          //   }
           var tempFish;
-          var closestThing; 
+          var tempdistance;
+          var closestThing = this; 
           var closestPoint; 
           var closestDistance = 999999; 
+          
 
           for(var i=0; i<listOfFish.length; i++){
+
             tempFish = listOfFish[i];
-           
-            if( this.getDistance([tempFish.x,tempFish.y]) < closestDistance); //TODO delay sqrt for perfomance
-              { closestDistance = this.getDistance([tempFish.x,tempFish.y]);
-                closestThing = listOfFish[i];
+
+            if (tempFish === this) //skip myself
+              continue;
+            // var A = this.getDistance([tempFish.x,tempFish.y]);
+            // var B = closestDistance;
+            tempdistance = this.getDistance([tempFish.x,tempFish.y]);
+            if( tempdistance < closestDistance); //TODO delay sqrt for perfomance
+              {
+               //console.log(closestDistance);
+
+                if(tempdistance = 0 )
+                  {
+                    tempFish.x=tempFish.x+Math.floor(Math.random() * (2)) -1;
+                    tempFish.y=tempFish.y+Math.floor(Math.random() * (2)) -1;   //listOfFish.splice(i, 1);
+                  }
+                else
+                  {
+                    closestThing = listOfFish[i];
+                    closestDistance = tempdistance;
+                  }
               }
 
           }
+
+          if(closestThing===this)
+            alert("i am me");
+
           closestPoint = [closestThing.x,closestThing.y];
 
           wallpoint = this.getClosestWall();
 
-          if(this.getDistance(wallpoint) <= closestDistance)
+          //console.log(Math.round(this.getDistance(closestPoint)),this.getDistance(wallpoint));
+          //console.log(listOfFish);
+          // var A = this.getDistance(wallpoint);
+          // var B = Math.round(closestDistance);
+          if((Math.round(this.getDistance(wallpoint)) <= Math.round(closestDistance)) || (this.getDistance(wallpoint)<4))
             closestPoint = wallpoint;
-          theta = Math.atan(closestPoint[1],closestPoint[0]);
-          degrees = ((theta * (180/Math.PI)) + 360 + 180 - (45/2) )%360; //pad, flip, offset, and convert
-          segment = Math.floor(degrees/45); 
+          
+          if(this.getDistance(closestPoint) < 12) //if close to something
+            {
+                theta = Math.atan2(closestPoint[1]-this.y, closestPoint[0]-this.x);
+                degrees = ((theta * (180/Math.PI)) + 360 + 180 - (45/2) )%360; //pad, flip, offset, and convert
+                this.segment = Math.floor(degrees/45); 
+            }
 
-          switch(segment) {
+          else if((Math.random()>.8) )
+            this.segment += Math.floor(Math.random() * (2)) -1;
+
+          this.segment = this.segment%7;
+          switch(this.segment) {
               case 0:
                   this.dx =  1;
                   this.dy =  0;
@@ -105,7 +136,7 @@ function fish(x, y){
                   break;
               case 3:
                   this.dx = -1;
-                  this.dy = 1;
+                  this.dy =  1;
                   break;
               case 4:
                   this.dx = -1;
@@ -133,11 +164,18 @@ function fish(x, y){
           }
 
 
-          // this.dx = (this.dx>0) ? 1 : -1; 
-          // this.dy = (this.dy>0) ? 1 : -1;
-
           this.x += this.dx;
-          this.y += this.dy;  
+          this.y += this.dy;
+
+          if(this.x>=width-1)
+            this.x = width-1;
+          if(this.x<=0)
+            this.x = 0;
+          if(this.y>=height-1)
+            this.y = height-1;
+          if(this.y<=0)
+            this.y = 0;
+
           },
 
         
@@ -170,8 +208,8 @@ function fish(x, y){
     var y = 50;
 
     for (var i = 0; i < number; i++) { //spawn n fish and add them to list
-      x = Math.floor(Math.random()*(width-1));
-      y = Math.floor(Math.random()*(height-1));
+      x = Math.floor(Math.random()*(width-6))+3;
+      y = Math.floor(Math.random()*(height-6))+3;
       //check if spot is full please
       
       var singleFish = new fish(x,y);
@@ -183,7 +221,7 @@ function fish(x, y){
     }
 
   function Ocean(equation, canvas) {
-    this.Fishes    = init(155); // spawn new fish
+    this.Fishes    = init(population); // spawn new fish
     this.singleFish = new fish(50,50);
     this.canvas    = canvas;
     this.scale     = canvas.getAttribute('width') / width;
@@ -222,7 +260,7 @@ function fish(x, y){
     },
 
     drawFish: function(x,y,color) {
-      // Rerun the step() function every animation frame
+      
        for (var sx = 0; sx < this.scale; sx++) {
             for (var sy = 0; sy < this.scale; sy++) {
               var i = (((y * this.scale + sy) * width * this.scale) + (x * this.scale + sx)) * 4;
