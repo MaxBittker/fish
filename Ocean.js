@@ -6,8 +6,8 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 100;
-  var interval = 1000 / (15 /* fps */);
+  var population = 44;
+  var interval = 1000 / (10 /* fps */);
 
 function fish(x, y){
          // Add object properties like this
@@ -15,7 +15,7 @@ function fish(x, y){
          this.y = y;
          this.dx = 1;//smarter later
          this.dy = 1;
-         this.segment =  Math.floor(Math.random() * 7);
+         this.segment =  Math.floor(Math.random() * 8);
       } 
 
       // Add methods like this.  All Person objects will be able to invoke this
@@ -56,8 +56,7 @@ function fish(x, y){
         // },
 
         getDistance: function(point){
-        var distance = Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2));
-        return(distance);
+        return(Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2)));
         },
 
         swim: function(listOfFish) {
@@ -67,6 +66,7 @@ function fish(x, y){
           var closestThing = this; 
           var closestPoint; 
           var closestDistance = 999999; 
+          var AngleOfAttack = 180; //180=away, 0 = towards, 90= perpendicularly
           
 
           for(var i=0; i<listOfFish.length; i++){
@@ -77,12 +77,12 @@ function fish(x, y){
               continue;
             // var A = this.getDistance([tempFish.x,tempFish.y]);
             // var B = closestDistance;
-            tempdistance = this.getDistance([tempFish.x,tempFish.y]);
-            if( tempdistance < closestDistance); //TODO delay sqrt for perfomance
+            tempdistance = Math.round(this.getDistance([tempFish.x,tempFish.y]));
+            if( tempdistance < closestDistance) //TODO delay sqrt for perfomance
               {
                //console.log(closestDistance);
 
-                if(tempdistance = 0 )
+                if(tempdistance == 0 )
                   {
                     tempFish.x=tempFish.x+Math.floor(Math.random() * (2)) -1;
                     tempFish.y=tempFish.y+Math.floor(Math.random() * (2)) -1;   //listOfFish.splice(i, 1);
@@ -108,17 +108,36 @@ function fish(x, y){
           // var A = this.getDistance(wallpoint);
           // var B = Math.round(closestDistance);
           if((Math.round(this.getDistance(wallpoint)) <= Math.round(closestDistance)) || (this.getDistance(wallpoint)<4))
-            closestPoint = wallpoint;
-          
-          if(this.getDistance(closestPoint) < 12) //if close to something
-            {
-                theta = Math.atan2(closestPoint[1]-this.y, closestPoint[0]-this.x);
-                degrees = ((theta * (180/Math.PI)) + 360 + 180 - (45/2) )%360; //pad, flip, offset, and convert
-                this.segment = Math.floor(degrees/45); 
+            {closestPoint = wallpoint;
+            AngleOfAttack = 180; //maybe make it softer later
             }
-
-          else if((Math.random()>.8) )
-            this.segment += Math.floor(Math.random() * (2)) -1;
+          else{
+            closestDistance = this.getDistance(closestPoint);
+            switch (true) {
+                case (closestDistance < 5):
+                    AngleOfAttack = 180;
+                    break;
+                case (closestDistance > 4 && closestDistance < 15): 
+                    AngleOfAttack = 90; //change this later to match direction
+                    break;
+                case (closestDistance > 14):
+                    AngleOfAttack = 0;
+                    break;
+                default:
+                    alert("none");
+                    break;
+            }
+          }
+          // if(this.getDistance(closestPoint) < 3) //if close to something
+          //   {
+          theta = Math.atan2(closestPoint[1]-this.y, closestPoint[0]-this.x);
+          degrees = ((theta * (180/Math.PI)) + 360 + AngleOfAttack - (45/2) )%360; //pad, flip, offset, and convert
+          this.segment = Math.floor(degrees/45); 
+          if(this.segment<0)
+            alert("negative segment");
+            // }
+          // else if((Math.random()>.9) )
+          //   this.segment += Math.floor(Math.random() * (2)) -1;
 
           this.segment = this.segment%7;
           switch(this.segment) {
@@ -159,7 +178,7 @@ function fish(x, y){
                   this.dy =  0;
                   break;
               default:
-                   alert("code 9! alert!");
+                   console.log("code 9! alert!");
                    break;
           }
 
