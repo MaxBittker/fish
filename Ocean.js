@@ -6,7 +6,7 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 44;
+  var population = 30;
   var interval = 1000 / (10 /* fps */);
 
 function fish(x, y){
@@ -304,7 +304,8 @@ function fish(x, y){
           // Set the x, y, r and A variables
         
           // Get the color
-          var color = ((x*y)*this.frame%100)+100;
+          var color = (Math.cos(x*y+ this.frame)*15)+100;
+          // ((x*y)*this.frame%100)+100;
           var R = (color & 0xff0000) >>> 16;
           var G = (color & 0x00ff00) >>> 8;
           var B = (color & 0x0000ff) >>> 0;
