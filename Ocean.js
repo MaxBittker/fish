@@ -130,17 +130,19 @@ function fish(x, y){
           }
           // if(this.getDistance(closestPoint) < 3) //if close to something
           //   {
+          if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
+            this.segment = closestThing.segment;
+          else{
           theta = Math.atan2(closestPoint[1]-this.y, closestPoint[0]-this.x);
           degrees = ((theta * (180/Math.PI)) + 360 + AngleOfAttack - (45/2) )%360; //pad, flip, offset, and convert
-          this.segment = Math.floor(degrees/45); 
+          this.segment = Math.floor(degrees/45);} 
           if(this.segment<0)
             alert("negative segment");
             // }
           // else if((Math.random()>.9) )
           //   this.segment += Math.floor(Math.random() * (2)) -1;
 
-          if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
-            desiredSegment = closestThing.segment;
+          
             
           this.segment = this.segment%7;
           switch(this.segment) {
