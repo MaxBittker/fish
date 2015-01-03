@@ -139,6 +139,9 @@ function fish(x, y){
           // else if((Math.random()>.9) )
           //   this.segment += Math.floor(Math.random() * (2)) -1;
 
+          if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
+            desiredSegment = closestThing.segment;
+            
           this.segment = this.segment%7;
           switch(this.segment) {
               case 0:
