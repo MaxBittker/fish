@@ -24,30 +24,28 @@ function fish(x, y){
         getClosestWall: function(){
 
         var wallpoint = [0,0];
-       // var workingvector = [0,0];
-        var r = width/2
-        var theta = Math.atan2((this.y-r), (this.x-r));
-        wallpoint = [Math.round((r-2)*Math.cos(theta))+r,Math.round((r-2)*Math.sin(theta))+r];
-        // if( this.x > (width/2) ) //on right side
-        //   workingvector[0] = width-this.x;
-        // else
-        //   workingvector[0] = -this.x; //on the left side
+        var workingvector = [0,0];
+       
+        if( this.x > (width/2) ) //on right side
+          workingvector[0] = width-this.x;
+        else
+          workingvector[0] = -this.x; //on the left side
 
-        // if( this.y > (height/2) ) //on bottom side
-        //   workingvector[1] = height-this.y;
-        // else
-        //   workingvector[1] = -this.y;
+        if( this.y > (height/2) ) //on bottom side
+          workingvector[1] = height-this.y;
+        else
+          workingvector[1] = -this.y;
 
-        // if( Math.abs(workingvector[0]) < Math.abs(workingvector[1])) //closer to a vertical wall
-        // {
-        //   wallpoint[0] = (workingvector[0]>0) ? width : 0;
-        //   wallpoint[1] = this.y;
-        // }
-        // else //closer to a horizontal wall
-        // {
-        //  wallpoint[1] = (workingvector[1]>0) ? height : 0;
-        //  wallpoint[0] = this.x;
-        // }
+        if( Math.abs(workingvector[0]) < Math.abs(workingvector[1])) //closer to a vertical wall
+        {
+          wallpoint[0] = (workingvector[0]>0) ? width : 0;
+          wallpoint[1] = this.y;
+        }
+        else //closer to a horizontal wall
+        {
+         wallpoint[1] = (workingvector[1]>0) ? height : 0;
+         wallpoint[0] = this.x;
+        }
         return(wallpoint);
         },
 
