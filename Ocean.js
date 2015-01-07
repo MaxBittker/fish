@@ -8,14 +8,15 @@ Ocean = (function() {
   var height = 100;
   var population = 55;
   var interval = 1000 / (15 /* fps */);
+  var region = [5,15];
 
 function fish(x, y){
          // Add object properties like this
          this.x = x;
          this.y = y;
-         this.dx = 1;//smarter later
+         this.dx = -1;//smarter later
          this.dy = 1;
-         this.segment =  Math.floor((Math.random() * 12345)%8);
+         this.segment =  Math.round((Math.random() * 12345)%8);
       } 
 
       // Add methods like this.  All Person objects will be able to invoke this
@@ -25,6 +26,9 @@ function fish(x, y){
 
         var wallpoint = [0,0];
         var workingvector = [0,0];
+        // var r = width/2
+        // var theta = Math.atan2((this.y-r), (this.x-r));
+        // wallpoint = [Math.round((r-2)*Math.cos(theta))+r,Math.round((r-2)*Math.sin(theta))+r];
 
         if( this.x > (width/2) ) //on right side
           workingvector[0] = width-this.x;
@@ -68,23 +72,33 @@ function fish(x, y){
           var closestDistance = 999999; 
           var AngleOfAttack = 180; //180=away, 0 = towards, 90= perpendicularly
           var desiredSegment;
+          var sumvector =[0,0];
 
 
           for(var i=0; i<listOfFish.length; i++){
 
             tempFish = listOfFish[i];
 
-            if (tempFish === this) //skip myself
+            if (tempFish === this)// || (this.getDistance([tempFish.x,tempFish.y]))>30 ) //skip myself
               continue;
-            
+
+           
+
             tempdistance = Math.round(this.getDistance([tempFish.x,tempFish.y]));
+
+             if(tempdistance<15)
+             {
+            sumvector[0] -= Math.pow((this.x-tempFish.x),-1);
+            sumvector[1] -= Math.pow((this.y-tempFish.y),-1);
+            }
+
             if( tempdistance < closestDistance) //TODO delay sqrt for perfomance
               {
                
                 if(tempdistance == 0 )
                   {
-                    tempFish.x=tempFish.x+Math.floor(Math.random() * (2)) -1;
-                    tempFish.y=tempFish.y+Math.floor(Math.random() * (2)) -1;   //listOfFish.splice(i, 1);
+                    tempFish.x=tempFish.x+Math.floor(Math.random() * (2)) -1; //massage overlaps
+                    tempFish.y=tempFish.y+Math.floor(Math.random() * (2)) -1;  //listOfFish.splice(i, 1);
                   }
                 else
                   {
@@ -96,17 +110,16 @@ function fish(x, y){
           }
 
           if(closestThing===this)
-            alert("clostest thing is me?");
+            alert("closest thing is me?");
 
           closestPoint = [closestThing.x,closestThing.y];
 
           wallpoint = this.getClosestWall();
 
-          //console.log(Math.round(this.getDistance(closestPoint)),this.getDistance(wallpoint));
-          //console.log(listOfFish);
-          // var A = this.getDistance(wallpoint);
-          // var B = Math.round(closestDistance);
-          if((Math.round(this.getDistance(wallpoint)) <= Math.round(closestDistance)) || (this.getDistance(wallpoint)<8))
+          // sumvector[0] += Math.pow((this.x-wallpoint[0]),-1)*4; //count wall 25 times
+          // sumvector[1] += Math.pow((this.y-wallpoint[1]),-1)*4;
+
+          if(this.getDistance(wallpoint)<7)
             {
             closestPoint = wallpoint;
             AngleOfAttack = 180; //maybe make it softer later
@@ -114,13 +127,13 @@ function fish(x, y){
           else{
             closestDistance = this.getDistance(closestPoint);
             switch (true) {
-                case (closestDistance < 9):
+                case (closestDistance < region[0]):
                     AngleOfAttack = 180;
                     break;
-                case (closestDistance > 8 && closestDistance < 15): 
-                    AngleOfAttack = -90; //change this later to match direction
+                case (closestDistance < region[1]): 
+                    AngleOfAttack = 90; //90 = special code 
                     break;
-                case (closestDistance > 14):
+                case (closestDistance > (region[1]-1) ):
                     AngleOfAttack = 0;
                     break;
                 default:
@@ -130,24 +143,30 @@ function fish(x, y){
           }
           // if(this.getDistance(closestPoint) < 3) //if close to something
           //   {
-          theta = Math.atan2(closestPoint[1]-this.y, closestPoint[0]-this.x);
+            if(closestPoint === wallpoint)
+          theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
+            else
+          theta = Math.atan2(sumvector[1], sumvector[0]);    
+
           degrees = ((theta * (180/Math.PI)) + 360 + AngleOfAttack - (45/2) )%360; //pad, flip, offset, and convert
-          desiredSegment = Math.floor(degrees/45)%8 ; 
+          desiredSegment = Math.round(degrees/45)%8 ; 
           
-          if(closestPoint === wallpoint)
+          if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
+            desiredSegment = closestThing.segment;
+
+          if(closestPoint === wallpoint || closestDistance<3)
             this.segment = desiredSegment;
           else if(this.segment>desiredSegment)//this is gross i'm sorry
             this.segment+=((this.segment- desiredSegment) < (((desiredSegment+8)-this.segment)%8)) ? 1 : -1;
           else if(this.segment<desiredSegment)
-            this.segment+=((desiredSegment- this.segment) < (((this.segment+7)-desiredSegment)%8)) ? 1 : -1;
+            this.segment+=((desiredSegment- this.segment) < (((this.segment+8)-desiredSegment)%8)) ? 1 : -1;
 
         
-          if(this.segment<0)
-            this.segment+=8;
-            
+         // this.segment = desiredSegment;
           // else if((Math.random()>.9) )
           //   this.segment += Math.floor(Math.random() * (2)) -1;
-          this.segment = this.segment%8;
+          
+          this.segment = (this.segment+8)%8;
           switch(this.segment) {
               case 0:
                   this.dx =  1;
@@ -187,7 +206,7 @@ function fish(x, y){
                   this.segment = 0;
                   break;
               default:
-                   console.log("code 9! alert!");
+                   console.log(this.segment);
                    break;
           }
 
@@ -236,8 +255,8 @@ function fish(x, y){
     var y = 50;
 
     for (var i = 0; i < number; i++) { //spawn n fish and add them to list
-      x = Math.floor(Math.random()*(width-6))+3;
-      y = Math.floor(Math.random()*(height-6))+3;
+      x = Math.floor(Math.random()*(width-60))+30;
+      y = Math.floor(Math.random()*(height-60))+30;
       //check if spot is full please
       
       var singleFish = new fish(x,y);
