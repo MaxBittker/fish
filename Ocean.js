@@ -6,9 +6,9 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 55;
+  var population = 44;
   var interval = 1000 / (15 /* fps */);
-  var region = [5,15];
+  var region = [3,20];
 
 function fish(x, y){
          // Add object properties like this
@@ -73,6 +73,7 @@ function fish(x, y){
           var AngleOfAttack = 180; //180=away, 0 = towards, 90= perpendicularly
           var desiredSegment;
           var sumvector =[0,0];
+          var alone =false;
 
 
           for(var i=0; i<listOfFish.length; i++){
@@ -82,15 +83,17 @@ function fish(x, y){
             if (tempFish === this)// || (this.getDistance([tempFish.x,tempFish.y]))>30 ) //skip myself
               continue;
 
-           
-
             tempdistance = Math.round(this.getDistance([tempFish.x,tempFish.y]));
 
              if(tempdistance<15)
              {
-            sumvector[0] -= Math.pow((this.x-tempFish.x),-1);
-            sumvector[1] -= Math.pow((this.y-tempFish.y),-1);
+            sumvector[0] -= (this.x == tempFish.x) ?  0 :  Math.pow((this.x-tempFish.x),-1);
+            sumvector[1] -= (this.y == tempFish.y) ?  0 :  Math.pow((this.y-tempFish.y),-1);
+
+            if(!isFinite(sumvector[0]) || !isFinite(sumvector[1]))
+             alert(sumvector);
             }
+
 
             if( tempdistance < closestDistance) //TODO delay sqrt for perfomance
               {
@@ -110,7 +113,7 @@ function fish(x, y){
           }
 
           if(closestThing===this)
-            alert("closest thing is me?");
+            alone =true;
 
           closestPoint = [closestThing.x,closestThing.y];
 
@@ -118,13 +121,20 @@ function fish(x, y){
 
           // sumvector[0] += Math.pow((this.x-wallpoint[0]),-1)*4; //count wall 25 times
           // sumvector[1] += Math.pow((this.y-wallpoint[1]),-1)*4;
+          
+          // if(this.getDistance(wallpoint)<10)
+          // {
+          // sumvector[0] -= Math.pow((this.x-wallpoint[0]),-1)*4;
+          // sumvector[1] -= Math.pow((this.y-wallpoint[1]),-1)*4;
+          // }
+           
 
-          if(this.getDistance(wallpoint)<7)
+          if(this.getDistance(wallpoint)<6)
             {
             closestPoint = wallpoint;
             AngleOfAttack = 180; //maybe make it softer later
             }
-          else{
+          else if(!alone){
             closestDistance = this.getDistance(closestPoint);
             switch (true) {
                 case (closestDistance < region[0]):
@@ -141,10 +151,11 @@ function fish(x, y){
                     break;
             }
           }
-          // if(this.getDistance(closestPoint) < 3) //if close to something
-          //   {
+          else 
+            AngleOfAttack = Math.floor(Math.random() * 360) ; //for solitary fish :(
+         
             if(closestPoint === wallpoint)
-          theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
+              theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
             else
           theta = Math.atan2(sumvector[1], sumvector[0]);    
 
