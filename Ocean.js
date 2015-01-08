@@ -10,6 +10,56 @@ Ocean = (function() {
   var interval = 1000 / (15 /* fps */);
   var region = [3,20];
 
+  var Sprite=[[0,0,0,0,0,
+               1,0,1,1,0,
+               1,1,1,1,1,
+               1,0,1,1,0,
+               0,0,0,0,0],//0
+
+              [0,0,1,1,1,
+               0,0,1,1,1,
+               0,1,1,1,1,
+               1,1,1,0,0,
+               0,1,0,0,0],//1
+
+              [0,0,1,0,0,
+               0,1,1,1,0,
+               0,1,1,1,0,
+               0,0,1,0,0,
+               0,1,1,1,0],//2//
+
+              [1,1,1,0,0,
+               1,1,1,0,0,
+               1,1,1,1,0,
+               0,0,1,1,1,
+               0,0,0,1,0],//3//
+
+              [0,0,0,0,0,
+               0,1,1,0,1,
+               1,1,1,1,1,
+               0,1,1,0,1,
+               0,0,0,0,0],//4//
+
+              [0,0,0,1,0,
+               0,0,1,1,1,
+               1,1,1,1,0,
+               1,1,1,0,0,
+               1,1,1,0,0],//5//
+
+              [0,1,1,1,0,
+               0,0,1,0,0,
+               0,1,1,1,0,
+               0,1,1,1,0,
+               0,0,1,0,0],//6//
+
+              [0,1,0,0,0,
+               1,1,1,0,0,
+               0,1,1,1,1,
+               0,0,1,1,1,
+               0,0,1,1,1],//7
+               ]
+
+
 function fish(x, y){
          // Add object properties like this
          this.x = x;
@@ -17,6 +67,7 @@ function fish(x, y){
          this.dx = -1;//smarter later
          this.dy = 1;
          this.segment =  Math.round((Math.random() * 12345)%8);
+         this.color = 11111; //unused right now
       } 
 
       // Add methods like this.  All Person objects will be able to invoke this
@@ -237,18 +288,18 @@ function fish(x, y){
           },
 
         
-        draw: function(imageData,scale){
-          ///this doesn't get called rn :(
-            for (var sx = 0; sx < scale; sx++) {
-            for (var sy = 0; sy < scale; sy++) {
-              var i = (((this.y * scale + sy) * width * scale) + (this.x * scale + sx)) * 4;
-              imageData.data[i]   = 255;
-              imageData.data[i+1] = 255;
-              imageData.data[i+2] = 000;
-              imageData.data[i+3] = 255;      
-            }
-          }
-        },
+        // draw: function(imageData,scale){
+        //   ///this doesn't get called rn :(
+        //     for (var sx = 0; sx < scale; sx++) {
+        //     for (var sy = 0; sy < scale; sy++) {
+        //       var i = (((this.y * scale + sy) * width * scale) + (this.x * scale + sx)) * 4;
+        //       imageData.data[i]   = 255;
+        //       imageData.data[i+1] = 255;
+        //       imageData.data[i+2] = 000;
+        //       imageData.data[i+3] = 255;      
+        //     }
+        //   }
+        // },
 
         spawn: function(listOfFish){
           var singleFish = new fish(this.x-this.dx,this.y-this.dy);
@@ -318,15 +369,21 @@ function fish(x, y){
       }
     },
 
-    drawFish: function(x,y,color) {
-      
+    drawFish: function(fish) {
+       var x = fish.x;
+       var y = fish.y;
+       var color = fish.color;
+       var segment = (8-fish.segment);
        for (var sx = 0; sx < this.scale; sx++) {
             for (var sy = 0; sy < this.scale; sy++) {
+              if(Sprite[segment%8][sx+(5*sy)])  
+              {
               var i = (((y * this.scale + sy) * width * this.scale) + (x * this.scale + sx)) * 4;
               this.imageData.data[i]   = 255;
               this.imageData.data[i+1] = 100;
               this.imageData.data[i+2] = 000;
-              this.imageData.data[i+3] = 255;      
+              this.imageData.data[i+3] = 255;
+              }      
             }
           }
 
@@ -367,7 +424,7 @@ function fish(x, y){
       for(var i=0; i<this.Fishes.length; i++){
         tempFish = this.Fishes[i];
         tempFish.swim(this.Fishes);
-        this.drawFish(tempFish.x,tempFish.y,55555);
+        this.drawFish(tempFish);
       }
 
       // this.singleFish.swim(1);
