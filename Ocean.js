@@ -6,7 +6,7 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 44;
+  var population = 15;
   var interval = 1000 / (15 /* fps */);
   var region = [3,20];
 
@@ -67,7 +67,8 @@ function fish(x, y){
          this.dx = -1;//smarter later
          this.dy = 1;
          this.segment =  Math.round((Math.random() * 12345)%8);
-         this.color = 11111; //unused right now
+         this.color = (Math.random()*0xFFFFFF<<0); //unused right now
+          console.log(this.color);
       } 
 
       // Add methods like this.  All Person objects will be able to invoke this
@@ -170,8 +171,8 @@ function fish(x, y){
 
           wallpoint = this.getClosestWall();
 
-          // sumvector[0] += Math.pow((this.x-wallpoint[0]),-1)*4; //count wall 25 times
-          // sumvector[1] += Math.pow((this.y-wallpoint[1]),-1)*4;
+          // sumvector[0] += Math.pow((this.x-wallpoint[0]),-1); //count wall 25 times
+          // sumvector[1] += Math.pow((this.y-wallpoint[1]),-1);
           
           // if(this.getDistance(wallpoint)<10)
           // {
@@ -373,15 +374,18 @@ function fish(x, y){
        var x = fish.x;
        var y = fish.y;
        var color = fish.color;
+        var R = (color & 0xff0000) >>> 16;
+        var G = (color & 0x00ff00) >>> 8;
+        var B = (color & 0x0000ff) >>> 0;
        var segment = (8-fish.segment);
        for (var sx = 0; sx < this.scale; sx++) {
             for (var sy = 0; sy < this.scale; sy++) {
               if(Sprite[segment%8][sx+(5*sy)])  
               {
               var i = (((y * this.scale + sy) * width * this.scale) + (x * this.scale + sx)) * 4;
-              this.imageData.data[i]   = 255;
-              this.imageData.data[i+1] = 100;
-              this.imageData.data[i+2] = 000;
+              this.imageData.data[i]   = R%255;
+              this.imageData.data[i+1] = G%255;
+              this.imageData.data[i+2] = B%255;
               this.imageData.data[i+3] = 255;
               }      
             }
