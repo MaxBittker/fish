@@ -6,7 +6,7 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 15;
+  var population = 45;
   var interval = 1000 / (15 /* fps */);
   var region = [3,20];
 
