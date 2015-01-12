@@ -8,7 +8,7 @@ Ocean = (function() {
   var height = 100;
   var population = 55;
   var interval = 1000 / (15 /* fps */);
-  var region = [7,20];
+  var region = [7,13];
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
   var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1];
 
@@ -196,7 +196,7 @@ function fish(x, y){
                   }
               }
             workingvector = [0,0];
-              if(tempdistance<25){
+              if(tempdistance<region[1]){
             workingvector[0] = (this.x == tempFish.x) ?  0 :  Math.pow((this.x-tempFish.x)/10,-1);
             workingvector[1] = (this.y == tempFish.y) ?  0 :  Math.pow((this.y-tempFish.y)/10,-1);
               }
