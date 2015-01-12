@@ -67,7 +67,7 @@ function fish(x, y){
          this.y = y;
          this.dx = -1;//smarter later
          this.dy = 1;
-         this.segment =  Math.round((Math.random() * 12345)%8);
+         this.segment =  Math.round((Math.random() * 100))%8;
          this.color = (Math.random()*0xFFFFFF<<0); //unused right now
           console.log(this.color);
       } 
@@ -139,7 +139,8 @@ function fish(x, y){
                   delta = [1,0];
                   break;
               default:
-                   console.log("weirdsegment"+segment);
+                   delta = [0,0];
+                   console.log("weirdsegment");
                    break;
           }
 
