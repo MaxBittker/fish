@@ -6,11 +6,13 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 45;
+  var population = 55;
   var interval = 1000 / (15 /* fps */);
-  var region = [3,20];
+  var region = [7,20];
+                     //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
+  var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1];
 
-  var Sprite=[[0,0,0,0,0,
+  var Sprite=[[0,0,0,0,0, //(yes, this is what you think it is)
                1,0,1,1,0,
                1,1,1,1,1,
                1,0,1,1,0,
@@ -61,7 +63,6 @@ Ocean = (function() {
 
 
 function fish(x, y){
-         // Add object properties like this
          this.x = x;
          this.y = y;
          this.dx = -1;//smarter later
@@ -71,7 +72,6 @@ function fish(x, y){
           console.log(this.color);
       } 
 
-      // Add methods like this.  All Person objects will be able to invoke this
       fish.prototype = {
 
         getClosestWall: function(){
@@ -106,6 +106,46 @@ function fish(x, y){
         return(wallpoint);
         },
 
+        decodeSegment: function(segment){
+        var delta = [0,0];
+
+        segment = (segment+8)%8;
+          switch(segment) {
+              case 0:
+                  delta = [1,0];
+                  break;
+              case 1:
+                  delta = [1,1];
+                  break;
+              case 2:
+                  delta = [0,1];
+                  break;
+              case 3:
+                  delta = [-1,1];
+                  break;
+              case 4:
+                  delta = [-1,0];
+                  break;
+              case 5:
+                  delta = [-1,-1];
+                  break;
+              case 6:
+                  delta = [0,-1];
+                  break;
+              case 7:
+                  delta = [1,-1];
+                  break;
+              case 8:
+                  delta = [1,0];
+                  break;
+              default:
+                   console.log("weirdsegment"+segment);
+                   break;
+          }
+
+        return(delta);
+        },
+
         // checkOccupied: function(listOfFish){
         // var distance = Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2));
         // return(distance);
@@ -122,11 +162,15 @@ function fish(x, y){
           var closestThing = this; 
           var closestPoint; 
           var closestDistance = 999999; 
-          var AngleOfAttack = 180; //180=away, 0 = towards, 90= perpendicularly
+          var AngleOfAttack = 0; //180=away, 0 = towards, 90= perpendicularly
+
+
           var desiredSegment;
-          var sumvector =[0,0];
           var alone =false;
 
+          var workingvector = [0,0];
+          var sumvector =[0,0];
+          var unitvector = [0,0]; 
 
           for(var i=0; i<listOfFish.length; i++){
 
@@ -137,23 +181,13 @@ function fish(x, y){
 
             tempdistance = Math.round(this.getDistance([tempFish.x,tempFish.y]));
 
-             if(tempdistance<15)
-             {
-            sumvector[0] -= (this.x == tempFish.x) ?  0 :  Math.pow((this.x-tempFish.x),-1);
-            sumvector[1] -= (this.y == tempFish.y) ?  0 :  Math.pow((this.y-tempFish.y),-1);
-
-            if(!isFinite(sumvector[0]) || !isFinite(sumvector[1]))
-             alert(sumvector);
-            }
-
-
             if( tempdistance < closestDistance) //TODO delay sqrt for perfomance
               {
                
                 if(tempdistance == 0 )
                   {
-                    tempFish.x=tempFish.x+Math.floor(Math.random() * (2)) -1; //massage overlaps
-                    tempFish.y=tempFish.y+Math.floor(Math.random() * (2)) -1;  //listOfFish.splice(i, 1);
+                    tempFish.x=tempFish.x+(Math.random()>.5 ? -1 : 1); //massage overlaps
+                    tempFish.y=tempFish.y+(Math.random()>.5 ? -1 : 1);  //listOfFish.splice(i, 1);
                   }
                 else
                   {
@@ -161,6 +195,32 @@ function fish(x, y){
                     closestDistance = tempdistance;
                   }
               }
+            workingvector = [0,0];
+              if(tempdistance<25){
+            workingvector[0] = (this.x == tempFish.x) ?  0 :  Math.pow((this.x-tempFish.x)/10,-1);
+            workingvector[1] = (this.y == tempFish.y) ?  0 :  Math.pow((this.y-tempFish.y)/10,-1);
+              }
+            switch (true) {
+                case (tempdistance < region[0]):
+                    sumvector[0] += workingvector[0]; //180 - away //friend too close on wv[0]=(-2), so we want to go left (-2)
+                    sumvector[1] += workingvector[1];
+                    break;
+                case (tempdistance < region[1]): 
+                    tempdirection = this.decodeSegment(tempFish.segment);
+                    sumvector[0] += tempdirection[0] * Math.pow(tempdistance/2,-1); //friend is going right(1,0) so we are too
+                    sumvector[1] += tempdirection[1] * Math.pow(tempdistance/2,-1);
+                    break;
+                case (tempdistance > (region[1]-1) ):
+                    // sumvector[0] -= workingvector[0]; //0 -towards //friend too far wv[0]=-.01
+                    // sumvector[1] -= workingvector[1];
+                    break;
+                default:
+                    alert("none");
+                    break;
+            }
+            if(!isFinite(sumvector[0]) || !isFinite(sumvector[1]))
+             alert(sumvector);
+
 
           }
 
@@ -171,108 +231,65 @@ function fish(x, y){
 
           wallpoint = this.getClosestWall();
 
-          // sumvector[0] += Math.pow((this.x-wallpoint[0]),-1); //count wall 25 times
-          // sumvector[1] += Math.pow((this.y-wallpoint[1]),-1);
+           if(this.getDistance(wallpoint)<closestDistance)
+            closestPoint = wallpoint;
           
-          // if(this.getDistance(wallpoint)<10)
-          // {
-          // sumvector[0] -= Math.pow((this.x-wallpoint[0]),-1)*4;
-          // sumvector[1] -= Math.pow((this.y-wallpoint[1]),-1)*4;
-          // }
+
+           if(this.getDistance(wallpoint)<20)
+             {
+            sumvector[0] += (this.x == wallpoint[0]) ?  0 :  Math.pow((this.x-wallpoint[0])/10,-1)*4; 
+            sumvector[1] += (this.y == wallpoint[1]) ?  0 :  Math.pow((this.y-wallpoint[1])/10,-1)*4;
+
+            if(!isFinite(sumvector[0]) || !isFinite(sumvector[1]))
+             alert(sumvector);
+            }
            
 
-          if(this.getDistance(wallpoint)<6)
-            {
-            closestPoint = wallpoint;
-            AngleOfAttack = 180; //maybe make it softer later
-            }
-          else if(!alone){
-            closestDistance = this.getDistance(closestPoint);
-            switch (true) {
-                case (closestDistance < region[0]):
-                    AngleOfAttack = 180;
-                    break;
-                case (closestDistance < region[1]): 
-                    AngleOfAttack = 90; //90 = special code 
-                    break;
-                case (closestDistance > (region[1]-1) ):
-                    AngleOfAttack = 0;
-                    break;
-                default:
-                    alert("none");
-                    break;
-            }
-          }
-          else 
-            AngleOfAttack = Math.floor(Math.random() * 360) ; //for solitary fish :(
-         
-            if(closestPoint === wallpoint)
-              theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
+          if(alone) //NEEDS EXTRA WORK
+            AngleOfAttack = closestPoint === wallpoint ? 180: Math.floor(Math.random() * 360) ; //for solitary fish :(
+          
+          // if(closestPoint === wallpoint)
+          //     theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
+          //   else
+          if(this.getDistance(wallpoint)<7)
+             {theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
+              AngleOfAttack = 180;}
             else
           theta = Math.atan2(sumvector[1], sumvector[0]);    
 
           degrees = ((theta * (180/Math.PI)) + 360 + AngleOfAttack - (45/2) )%360; //pad, flip, offset, and convert
           desiredSegment = Math.round(degrees/45)%8 ; 
           
-          if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
-            desiredSegment = closestThing.segment;
+          // if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
+          //   desiredSegment = closestThing.segment;
 
-          if(closestPoint === wallpoint || closestDistance<3)
+          if(closestPoint === wallpoint && closestDistance<5)
             this.segment = desiredSegment;
-          else if(this.segment>desiredSegment)//this is gross i'm sorry
-            this.segment+=((this.segment- desiredSegment) < (((desiredSegment+8)-this.segment)%8)) ? 1 : -1;
-          else if(this.segment<desiredSegment)
-            this.segment+=((desiredSegment- this.segment) < (((this.segment+8)-desiredSegment)%8)) ? 1 : -1;
-
-        
-         // this.segment = desiredSegment;
-          // else if((Math.random()>.9) )
-          //   this.segment += Math.floor(Math.random() * (2)) -1;
-          
-          this.segment = (this.segment+8)%8;
-          switch(this.segment) {
-              case 0:
-                  this.dx =  1;
-                  this.dy =  0;
-                  break;
-              case 1:
-                  this.dx =  1;
-                  this.dy =  1;
-                  break;
-              case 2:
-                  this.dx =  0;
-                  this.dy =  1;
-                  break;
-              case 3:
-                  this.dx = -1;
-                  this.dy =  1;
-                  break;
-              case 4:
-                  this.dx = -1;
-                  this.dy =  0;
-                  break;
-              case 5:
-                  this.dx = -1;
-                  this.dy = -1;
-                  break;
-              case 6:
-                  this.dx =  0;
-                  this.dy = -1;
-                  break;
-              case 7:
-                  this.dx =  1;
-                  this.dy = -1;
-                  break;
-              case 8:
-                  this.dx =  1;
-                  this.dy =  0;
-                  this.segment = 0;
-                  break;
-              default:
-                   console.log(this.segment);
-                   break;
+          else
+          {
+                d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
+                                                    //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
+                d = SegmentWrapLogicLUT[d]*-1;
+                  if(d==-9)
+                    d=(Math.random()>.5 ? -1 : 1);
+                this.segment+=d;
           }
 
+          /* else if(this.segment>desiredSegment)//this is gross i'm sorry
+          //   this.segment+=((this.segment- desiredSegment) < (((desiredSegment+8)-this.segment)%8)) ? 1 : -1;
+          // else if(this.segment<desiredSegment)
+          //   this.segment+=((desiredSegment- this.segment) < (((this.segment+8)-desiredSegment)%8)) ? 1 : -1;
+
+  
+         // this.segment = desiredSegment;
+          // else if((Math.random()>.9) )
+          //   this.segment += Math.floor(Math.random() * (2)) -1;*/
+          this.segment = (this.segment+8)%8;
+          
+          var delta = this.decodeSegment(this.segment);
+
+          this.dx = delta[0];
+          this.dy = delta[1];
 
           this.x += this.dx;
           this.y += this.dy;
