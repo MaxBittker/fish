@@ -6,8 +6,9 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
-  var population = 55;
-  var interval = 1000 / (15 /* fps */);
+  var population = 5;
+  var capacity = 150;
+  var interval = 1000 / (60 /* fps */);
   var region = [7,13];
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
   var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1];
@@ -69,7 +70,7 @@ function fish(x, y){
          this.dy = 1;
          this.segment =  Math.round((Math.random() * 100))%8;
          this.color = (Math.random()*0xFFFFFF<<0); //unused right now
-          console.log(this.color);
+          // console.log(this.color);
       } 
 
       fish.prototype = {
@@ -139,7 +140,6 @@ function fish(x, y){
                   delta = [1,0];
                   break;
               default:
-                   delta = [0,0];
                    console.log("weirdsegment");
                    break;
           }
@@ -276,15 +276,7 @@ function fish(x, y){
                 this.segment+=d;
           }
 
-          /* else if(this.segment>desiredSegment)//this is gross i'm sorry
-          //   this.segment+=((this.segment- desiredSegment) < (((desiredSegment+8)-this.segment)%8)) ? 1 : -1;
-          // else if(this.segment<desiredSegment)
-          //   this.segment+=((desiredSegment- this.segment) < (((this.segment+8)-desiredSegment)%8)) ? 1 : -1;
-
-  
-         // this.segment = desiredSegment;
-          // else if((Math.random()>.9) )
-          //   this.segment += Math.floor(Math.random() * (2)) -1;*/
+         
           this.segment = (this.segment+8)%8;
           
           var delta = this.decodeSegment(this.segment);
@@ -295,12 +287,12 @@ function fish(x, y){
           this.x += this.dx;
           this.y += this.dy;
 
-          if(this.x>=width-1)
-            this.x = width-1;
+          if(this.x>=width-2)
+            this.x = width-2;
           if(this.x<=0)
             this.x = 0;
-          if(this.y>=height-1)
-            this.y = height-1;
+          if(this.y>=height-2)
+            this.y = height-2;
           if(this.y<=0)
             this.y = 0;
 
@@ -321,7 +313,7 @@ function fish(x, y){
         // },
 
         spawn: function(listOfFish){
-          var singleFish = new fish(this.x-this.dx,this.y-this.dy);
+          var singleFish = new fish(this.x+(Math.random()>.5 ? -1 : 1),this.y+(Math.random()>.5 ? -1 : 1));
           listOfFish.push(singleFish);
         }
 
@@ -359,6 +351,7 @@ function fish(x, y){
     this.then      = +Date.now();
     this.frame     = 1;
     this.paused    = false;
+    this.GrowthAccumulator = 0;
   }
 
 
@@ -412,6 +405,24 @@ function fish(x, y){
 
     },
 
+    Growth: function(listOfFish) {
+      var r = .6; //rate of growth
+      var x = listOfFish.length/capacity;
+
+      population += Math.floor((r*x*(1-x)));
+      this.GrowthAccumulator += (r*x*(1-x)) - Math.floor((r*x*(1-x)));
+
+      while(listOfFish.length < population)
+          listOfFish[  Math.floor(Math.random()*listOfFish.length)  ].spawn(listOfFish);
+      if(this.GrowthAccumulator>=1)
+        {
+        listOfFish[  Math.floor(Math.random()*listOfFish.length)  ].spawn(listOfFish);
+        this.GrowthAccumulator =0;
+        }
+        console.log(listOfFish.length , this.GrowthAccumulator.toPrecision(3), (r*x*(1-x)).toPrecision(3));
+        return(listOfFish);
+    },
+
     drawFrame: function() {
       
       var data = this.imageData.data;
@@ -423,7 +434,7 @@ function fish(x, y){
           // Set the x, y, r and A variables
         
           // Get the color
-          var color = (Math.cos(x*y+ this.frame)*15)+100;
+          var color = (Math.random()*Math.random())*20+(Math.cos(x*y+ this.frame)*5)+60;
           // ((x*y)*this.frame%100)+100;
           var R = (color & 0xff0000) >>> 16;
           var G = (color & 0x00ff00) >>> 8;
@@ -440,6 +451,7 @@ function fish(x, y){
           }
         }
       }
+      this.Growth(this.Fishes);
 
       var tempFish;
 
@@ -449,32 +461,6 @@ function fish(x, y){
         this.drawFish(tempFish);
       }
 
-      // this.singleFish.swim(1);
-      
-      // this.drawFish(this.singleFish.x,this.singleFish.y,55555);
-
-     //  for (singleFish in this.Fishes)
-     // { singleFish.swim(1);
-     //  this.drawFish(singleFish.x,singleFish.y,55555);}
-      //singleFish.draw(this.imageData.data,this.scale);
-      //this.drawFish(22,22,55555);
-       // var i = (((singleFish.y * this.scale + sy) * width * this.scale) + (singleFish.x * this.scale + sx)) * 4;
-       //        this.imageData.data[i]   = 100;
-       //        this.imageData.data[i+1] = 255;
-       //        this.imageData.data[i+2] = 00;
-       //        this.imageData.data[i+3] = 255;
-    //  
-
-      // ///////////////
-      // this.Fishes[1].swim(1);
-      // this.Fishes[1].draw(this.imageData.data,this.scale);
-
-      // for (afish in this.Fishes)
-      // {
-      //   afish.swim(1);
-      //   console.log( afish.x);
-      //   afish.draw(data,this.scale);
-      // }
       this.context.putImageData(this.imageData, 0, 0);
     }
   };
