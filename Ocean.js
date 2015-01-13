@@ -8,7 +8,8 @@ Ocean = (function() {
   var height = 100;
   var population = 5;
   var capacity = 150;
-  var interval = 1000 / (60 /* fps */);
+  var growthFactor = .4;
+  var interval = 1000 / (15 /* fps */);
   var region = [7,13];
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
   var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1];
@@ -406,7 +407,7 @@ function fish(x, y){
     },
 
     Growth: function(listOfFish) {
-      var r = .6; //rate of growth
+      var r = growthFactor; //rate of growth
       var x = listOfFish.length/capacity;
 
       population += Math.floor((r*x*(1-x)));
