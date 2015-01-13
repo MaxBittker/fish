@@ -64,13 +64,13 @@ Ocean = (function() {
                ]
 
 
-function fish(x, y){
+function fish(x, y, color){
          this.x = x;
          this.y = y;
          this.dx = -1;//smarter later
          this.dy = 1;
          this.segment =  Math.round((Math.random() * 100))%8;
-         this.color = (Math.random()*0xFFFFFF<<0); //unused right now
+         this.color = color;
           // console.log(this.color);
       } 
 
@@ -314,7 +314,7 @@ function fish(x, y){
         // },
 
         spawn: function(listOfFish){
-          var singleFish = new fish(this.x+(Math.random()>.5 ? -1 : 1),this.y+(Math.random()>.5 ? -1 : 1));
+          var singleFish = new fish(this.x+(Math.random()>.5 ? -1 : 1),this.y+(Math.random()>.5 ? -1 : 1),this.color);
           listOfFish.push(singleFish);
         }
 
@@ -333,7 +333,7 @@ function fish(x, y){
       y = Math.floor(Math.random()*(height-60))+30;
       //check if spot is full please
       
-      var singleFish = new fish(x,y);
+      var singleFish = new fish(x,y, (Math.random()*0xFFFFFF<<0));
 
       listOfFish.push(singleFish);
       }
