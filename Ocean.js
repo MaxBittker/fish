@@ -6,11 +6,12 @@ Ocean = (function() {
   // Possibly should be passable as a options hash, but instead making file-global
   var width = 100;
   var height = 100;
+
   var population = 5;
-  var capacity = 150;
-  var growthFactor = .4;
-  var interval = 1000 / (15 /* fps */);
-  var region = [7,13];
+  var capacity = 120;
+  var growthFactor = .6;
+  var interval = 1000 / (20 /* fps */);
+  var region = [6,13];
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
   var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1];
 
@@ -148,10 +149,6 @@ function fish(x, y, color){
         return(delta);
         },
 
-        // checkOccupied: function(listOfFish){
-        // var distance = Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2));
-        // return(distance);
-        // },
 
         getDistance: function(point){
         return(Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2)));
@@ -212,9 +209,7 @@ function fish(x, y, color){
                     sumvector[0] += tempdirection[0] * Math.pow(tempdistance/2,-1); //friend is going right(1,0) so we are too
                     sumvector[1] += tempdirection[1] * Math.pow(tempdistance/2,-1);
                     break;
-                case (tempdistance > (region[1]-1) ):
-                    // sumvector[0] -= workingvector[0]; //0 -towards //friend too far wv[0]=-.01
-                    // sumvector[1] -= workingvector[1];
+                case (tempdistance > (region[1]-1) )://do nothing
                     break;
                 default:
                     alert("none");
@@ -236,7 +231,6 @@ function fish(x, y, color){
            if(this.getDistance(wallpoint)<closestDistance)
             closestPoint = wallpoint;
           
-
            if(this.getDistance(wallpoint)<20)
              {
             sumvector[0] += (this.x == wallpoint[0]) ?  0 :  Math.pow((this.x-wallpoint[0])/10,-1)*4; 
@@ -250,31 +244,28 @@ function fish(x, y, color){
           if(alone) //NEEDS EXTRA WORK
             AngleOfAttack = closestPoint === wallpoint ? 180: Math.floor(Math.random() * 360) ; //for solitary fish :(
           
-          // if(closestPoint === wallpoint)
-          //     theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
-          //   else
+         
           if(this.getDistance(wallpoint)<7)
-             {theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
-              AngleOfAttack = 180;}
+            {
+              theta = Math.atan2(wallpoint[1]-this.y, wallpoint[0]-this.x);
+              AngleOfAttack = 180;
+            }
             else
           theta = Math.atan2(sumvector[1], sumvector[0]);    
 
           degrees = ((theta * (180/Math.PI)) + 360 + AngleOfAttack - (45/2) )%360; //pad, flip, offset, and convert
           desiredSegment = Math.round(degrees/45)%8 ; 
-          
-          // if(AngleOfAttack == 90 && !(closestPoint===wallpoint)) //special case, try to match direction
-          //   desiredSegment = closestThing.segment;
-
+      
           if(closestPoint === wallpoint && closestDistance<5)
             this.segment = desiredSegment;
           else
           {
-                d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
-                                                    //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
-                d = SegmentWrapLogicLUT[d]*-1;
-                  if(d==-9)
-                    d=(Math.random()>.5 ? -1 : 1);
-                this.segment+=d;
+              d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
+                                                  //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
+              d = SegmentWrapLogicLUT[d]*-1;
+                if(d==-9)
+                  d=(Math.random()>.5 ? -1 : 1);
+              this.segment+=d;
           }
 
          
@@ -290,28 +281,14 @@ function fish(x, y, color){
 
           if(this.x>=width-2)
             this.x = width-2;
-          if(this.x<=0)
-            this.x = 0;
+          if(this.x<=2)
+            this.x = 2;
           if(this.y>=height-2)
             this.y = height-2;
-          if(this.y<=0)
-            this.y = 0;
+          if(this.y<=2)
+            this.y = 2;
 
           },
-
-        
-        // draw: function(imageData,scale){
-        //   ///this doesn't get called rn :(
-        //     for (var sx = 0; sx < scale; sx++) {
-        //     for (var sy = 0; sy < scale; sy++) {
-        //       var i = (((this.y * scale + sy) * width * scale) + (this.x * scale + sx)) * 4;
-        //       imageData.data[i]   = 255;
-        //       imageData.data[i+1] = 255;
-        //       imageData.data[i+2] = 000;
-        //       imageData.data[i+3] = 255;      
-        //     }
-        //   }
-        // },
 
         spawn: function(listOfFish){
           var singleFish = new fish(this.x+(Math.random()>.5 ? -1 : 1),this.y+(Math.random()>.5 ? -1 : 1),this.color);
@@ -355,8 +332,6 @@ function fish(x, y, color){
     this.GrowthAccumulator = 0;
   }
 
-
-     
 
   Ocean.prototype = {
     play: function() {
@@ -407,9 +382,10 @@ function fish(x, y, color){
     },
 
     Growth: function(listOfFish) {
+      population = listOfFish.length;
       var r = growthFactor; //rate of growth
-      var x = listOfFish.length/capacity;
-
+      var x = population/capacity;
+      
       population += Math.floor((r*x*(1-x)));
       this.GrowthAccumulator += (r*x*(1-x)) - Math.floor((r*x*(1-x)));
 
@@ -420,6 +396,9 @@ function fish(x, y, color){
         listOfFish[  Math.floor(Math.random()*listOfFish.length)  ].spawn(listOfFish);
         this.GrowthAccumulator =0;
         }
+       
+        region = [Math.round(9-(population/30)),13];
+
         console.log(listOfFish.length , this.GrowthAccumulator.toPrecision(3), (r*x*(1-x)).toPrecision(3));
         return(listOfFish);
     },
@@ -428,8 +407,7 @@ function fish(x, y, color){
       
       var data = this.imageData.data;
 
-  
-      /////////////old drawing code
+      /////////////background drawing code
       for (var x = 0; x < width; x++) {
         for (var y = 0; y < height; y++) {
           // Set the x, y, r and A variables
