@@ -325,13 +325,13 @@ function fish(x, y, color){
               {
                 listOfFish.splice(listOfFish.indexOf(this),1);
                 boats[i].haul++;
-                console.log(boats[i].player, boats[i].haul);
+                // console.log(boats[i].player, boats[i].haul);
               }
 
               if(this.getDistance([boats[i].x,boats[i].y])<30)
               {
-              sumvector[0] += (this.x == boats[i].x) ?  0 :  Math.pow((this.x-boats[i].x)/10,-1)*4; 
-              sumvector[1] += (this.y == boats[i].y) ?  0 :  Math.pow((this.y-boats[i].y)/10,-1)*4;
+              sumvector[0] += (this.x == boats[i].x) ?  0 :  Math.pow((this.x-boats[i].x)/10,-1)*8; 
+              sumvector[1] += (this.y == boats[i].y) ?  0 :  Math.pow((this.y-boats[i].y)/10,-1)*8;
               }
           }
 
@@ -410,8 +410,8 @@ function boat(x, y, color, player){
       boat.prototype = {
 
         toot: function(){
+          var desiredSegment = 0;
 
-        //l o c o m o t e
         if(this.player == 1)
         {
           if (keyD == true) 
@@ -440,6 +440,34 @@ function boat(x, y, color, player){
           if (keyUp == true) 
             this.y--;
          } 
+        // if(this.player == 1)
+        // {
+        //   if (keyD == true) 
+        //     this.x ++;
+          
+        //   if (keyS == true) 
+        //     this.y ++;
+        
+        //   if (keyA == true) 
+        //     this.x--;
+          
+        //   if (keyW == true) 
+        //     this.y--;
+        // }
+        // else
+        // {
+        //    if (keyRight == true) 
+        //     this.x ++;
+          
+        //   if (keyDown == true) 
+        //     this.y ++;
+        
+        //   if (keyLeft == true) 
+        //     this.x--;
+          
+        //   if (keyUp == true) 
+        //     this.y--;
+        //  } 
 
         if(this.x>=width-1)
             this.x = width-1;
