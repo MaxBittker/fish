@@ -1,5 +1,5 @@
 
- 
+
 
 Ocean = (function() {
   // Constant properties for all Ocean displays
@@ -64,6 +64,125 @@ Ocean = (function() {
                0,0,1,1,1],//7
                ]
 
+  window.addEventListener("keydown", onKeyDown, false);
+  window.addEventListener("keyup", onKeyUp, false);
+
+  var keyW = false;
+  var keyA = false;
+  var keyS = false;
+  var keyD = false;
+
+  var keyUp = false;   
+  var keyLeft = false;
+  var keyDown = false;
+  var keyRight = false;
+
+
+function onKeyDown(event) {
+      var keyCode = event.keyCode;
+       // console.log(keyCode);
+      switch (keyCode) {
+        case 68: //d
+          keyD = true;
+          break;
+        case 83: //s
+          keyS = true;
+          break;
+        case 65: //a
+          keyA = true;
+          break;
+        case 87: //w
+          keyW = true;
+          break;
+        case 39: //d
+          keyRight = true;
+          break;
+        case 40: //s
+          keyDown = true;
+          break;
+        case 37: //a
+          keyLeft = true;
+          break;
+        case 38: //w
+          keyUp = true;
+          break;
+      }
+    }
+
+    function onKeyUp(event) {
+      var keyCode = event.keyCode;
+
+      switch (keyCode) {
+        case 68: //d
+          keyD = false;
+          break;
+        case 83: //s
+          keyS = false;
+          break;
+        case 65: //a
+          keyA = false;
+          break;
+        case 87: //w
+          keyW = false;
+          break;
+        case 39: //up
+          keyRight = false;
+          break;
+        case 40: //down
+          keyDown = false;
+          break;
+        case 37: //left
+          keyLeft = false;
+          break;
+        case 38: //up
+          keyUp = false;
+          break;
+      }
+    }
+    
+
+     function decodeSegment(segment){
+        var delta = [0,0];
+
+        segment = (segment+8)%8;
+          switch(segment) {
+              case 0:
+                  delta = [1,0];
+                  break;
+              case 1:
+                  delta = [1,1];
+                  break;
+              case 2:
+                  delta = [0,1];
+                  break;
+              case 3:
+                  delta = [-1,1];
+                  break;
+              case 4:
+                  delta = [-1,0];
+                  break;
+              case 5:
+                  delta = [-1,-1];
+                  break;
+              case 6:
+                  delta = [0,-1];
+                  break;
+              case 7:
+                  delta = [1,-1];
+                  break;
+              case 8:
+                  delta = [1,0];
+                  break;
+              default:
+                   console.log("weirdsegment");
+                   break;
+          }
+
+        return(delta);
+        }
+
+
+
 
 function fish(x, y, color){
          this.x = x;
@@ -109,52 +228,12 @@ function fish(x, y, color){
         return(wallpoint);
         },
 
-        decodeSegment: function(segment){
-        var delta = [0,0];
-
-        segment = (segment+8)%8;
-          switch(segment) {
-              case 0:
-                  delta = [1,0];
-                  break;
-              case 1:
-                  delta = [1,1];
-                  break;
-              case 2:
-                  delta = [0,1];
-                  break;
-              case 3:
-                  delta = [-1,1];
-                  break;
-              case 4:
-                  delta = [-1,0];
-                  break;
-              case 5:
-                  delta = [-1,-1];
-                  break;
-              case 6:
-                  delta = [0,-1];
-                  break;
-              case 7:
-                  delta = [1,-1];
-                  break;
-              case 8:
-                  delta = [1,0];
-                  break;
-              default:
-                   console.log("weirdsegment");
-                   break;
-          }
-
-        return(delta);
-        },
-
 
         getDistance: function(point){
         return(Math.sqrt(Math.pow((this.x - point[0]),2)+Math.pow((this.y- point[1]),2)));
         },
 
-        swim: function(listOfFish) {
+        swim: function(listOfFish, boats) {
           var distance = [0,0];
           var tempFish;
           var tempdistance;
@@ -205,7 +284,7 @@ function fish(x, y, color){
                     sumvector[1] += workingvector[1];
                     break;
                 case (tempdistance < region[1]): 
-                    tempdirection = this.decodeSegment(tempFish.segment);
+                    tempdirection = decodeSegment(tempFish.segment);
                     sumvector[0] += tempdirection[0] * Math.pow(tempdistance/2,-1); //friend is going right(1,0) so we are too
                     sumvector[1] += tempdirection[1] * Math.pow(tempdistance/2,-1);
                     break;
@@ -231,7 +310,7 @@ function fish(x, y, color){
            if(this.getDistance(wallpoint)<closestDistance)
             closestPoint = wallpoint;
           
-           if(this.getDistance(wallpoint)<20)
+           if(this.getDistance(wallpoint)<30)
              {
             sumvector[0] += (this.x == wallpoint[0]) ?  0 :  Math.pow((this.x-wallpoint[0])/10,-1)*4; 
             sumvector[1] += (this.y == wallpoint[1]) ?  0 :  Math.pow((this.y-wallpoint[1])/10,-1)*4;
@@ -239,6 +318,24 @@ function fish(x, y, color){
             if(!isFinite(sumvector[0]) || !isFinite(sumvector[1]))
              alert(sumvector);
             }
+
+          for(var i =0; i < boats.length;i++)
+          {
+             if(this.getDistance([boats[i].x,boats[i].y])<2)
+              {
+                listOfFish.splice(listOfFish.indexOf(this),1);
+                boats[i].haul++;
+                console.log(boats[i].player, boats[i].haul);
+              }
+
+              if(this.getDistance([boats[i].x,boats[i].y])<30)
+              {
+              sumvector[0] += (this.x == boats[i].x) ?  0 :  Math.pow((this.x-boats[i].x)/10,-1)*4; 
+              sumvector[1] += (this.y == boats[i].y) ?  0 :  Math.pow((this.y-boats[i].y)/10,-1)*4;
+              }
+          }
+
+         
            
 
           if(alone) //NEEDS EXTRA WORK
@@ -271,7 +368,7 @@ function fish(x, y, color){
          
           this.segment = (this.segment+8)%8;
           
-          var delta = this.decodeSegment(this.segment);
+          var delta = decodeSegment(this.segment);
 
           this.dx = delta[0];
           this.dy = delta[1];
@@ -297,6 +394,67 @@ function fish(x, y, color){
 
       };
 
+function boat(x, y, color, player){
+         this.x = x;
+         this.y = y;
+        
+         this.player = player;
+         this.color = color;
+
+         this.haul =0;
+         this.segment = 0;
+
+          // console.log(this.color);
+      } 
+
+      boat.prototype = {
+
+        toot: function(){
+
+        //l o c o m o t e
+        if(this.player == 1)
+        {
+          if (keyD == true) 
+            this.x ++;
+          
+          if (keyS == true) 
+            this.y ++;
+        
+          if (keyA == true) 
+            this.x--;
+          
+          if (keyW == true) 
+            this.y--;
+        }
+        else
+        {
+           if (keyRight == true) 
+            this.x ++;
+          
+          if (keyDown == true) 
+            this.y ++;
+        
+          if (keyLeft == true) 
+            this.x--;
+          
+          if (keyUp == true) 
+            this.y--;
+         } 
+
+        if(this.x>=width-1)
+            this.x = width-1;
+          if(this.x<=1)
+            this.x = 1;
+          if(this.y>=height-1)
+            this.y = height-1;
+          if(this.y<=1)
+            this.y = 1;
+        }
+
+        
+        
+
+      };
 
 
 
@@ -320,7 +478,7 @@ function fish(x, y, color){
 
   function Ocean(equation, canvas) {
     this.Fishes    = init(population); // spawn new fish
-    this.singleFish = new fish(50,50);
+    this.boats      = [new boat(10,10,10046464,1),new boat(90,90, 12373460,2)];
     this.canvas    = canvas;
     this.scale     = canvas.getAttribute('width') / width;
     console.log(this.scale);
@@ -381,6 +539,29 @@ function fish(x, y, color){
 
     },
 
+   drawBoat: function(boat) {
+       var x = boat.x;
+       var y = boat.y;
+       var color = boat.color;
+        var R = (color & 0xff0000) >>> 16;
+        var G = (color & 0x00ff00) >>> 8;
+        var B = (color & 0x0000ff) >>> 0;
+       var segment = (8-fish.segment);
+       for (var sx = 0; sx < this.scale; sx++) {
+            for (var sy = 0; sy < this.scale; sy++) {
+              if(true)//Sprite[segment%8][sx+(5*sy)])  
+              {
+              var i = (((y * this.scale + sy) * width * this.scale) + (x * this.scale + sx)) * 4;
+              this.imageData.data[i]   = R%255;
+              this.imageData.data[i+1] = G%255;
+              this.imageData.data[i+2] = B%255;
+              this.imageData.data[i+3] = 255;
+              }      
+            }
+          }
+
+
+    },
     Growth: function(listOfFish) {
       population = listOfFish.length;
       var r = growthFactor; //rate of growth
@@ -399,7 +580,7 @@ function fish(x, y, color){
        
         region = [Math.round(9-(population/30)),13];
 
-        console.log(listOfFish.length , this.GrowthAccumulator.toPrecision(3), (r*x*(1-x)).toPrecision(3));
+        // console.log(listOfFish.length , this.GrowthAccumulator.toPrecision(3), (r*x*(1-x)).toPrecision(3));
         return(listOfFish);
     },
 
@@ -436,10 +617,16 @@ function fish(x, y, color){
 
       for(var i=0; i<this.Fishes.length; i++){
         tempFish = this.Fishes[i];
-        tempFish.swim(this.Fishes);
+        tempFish.swim(this.Fishes,this.boats);
         this.drawFish(tempFish);
       }
 
+      for(var i =0; i<this.boats.length; i++){
+        this.boats[i].toot();
+        this.drawBoat(this.boats[i]);
+      }
+      
+      document.getElementById('score').innerHTML = 'Fish Caught:   Player 1: ' +this.boats[0].haul+'    Player 2: ' +this.boats[1].haul ;
       this.context.putImageData(this.imageData, 0, 0);
     }
   };
