@@ -373,8 +373,9 @@ function fish(x, y, color){
 
               if(this.getDistance([boats[i].x,boats[i].y])<30)
               {
-              sumvector[0] += (this.x == boats[i].x) ?  0 :  Math.pow((this.x-boats[i].x)/10,-1)*8; 
-              sumvector[1] += (this.y == boats[i].y) ?  0 :  Math.pow((this.y-boats[i].y)/10,-1)*8;
+              var noise = boats[i].moving ? 8 : 2;
+              sumvector[0] += (this.x == boats[i].x) ?  0 :  Math.pow((this.x-boats[i].x)/10,-1)* noise; 
+              sumvector[1] += (this.y == boats[i].y) ?  0 :  Math.pow((this.y-boats[i].y)/10,-1)* noise;
               }
           }
 
@@ -440,6 +441,8 @@ function fish(x, y, color){
 function boat(x, y, color, player){
          this.x = x;
          this.y = y;
+         
+         this.moving = false;
         
          this.player = player;
          this.color = color;
@@ -461,9 +464,12 @@ function boat(x, y, color, player){
           desiredSegment = encodeSegment(keyUp, keyDown, keyLeft, keyRight);
 
            if(desiredSegment == -1)
-             delta = [0,0];
+            { delta = [0,0];
+              this.moving = false;}
           else
           {
+             this.moving = true;
+
               d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
                                                   //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
               d = SegmentWrapLogicLUT[d]*-1;
@@ -480,35 +486,6 @@ function boat(x, y, color, player){
           this.x += delta[0];
           this.y += delta[1];
 
-
-        // if(this.player == 1)
-        // {
-        //   if (keyD == true) 
-        //     this.x ++;
-          
-        //   if (keyS == true) 
-        //     this.y ++;
-        
-        //   if (keyA == true) 
-        //     this.x--;
-          
-        //   if (keyW == true) 
-        //     this.y--;
-        // }
-        // else
-        // {
-        //    if (keyRight == true) 
-        //     this.x ++;
-          
-        //   if (keyDown == true) 
-        //     this.y ++;
-        
-        //   if (keyLeft == true) 
-        //     this.x--;
-          
-        //   if (keyUp == true) 
-        //     this.y--;
-        //  } 
 
         if(this.x>=width-1)
             this.x = width-1;
@@ -695,7 +672,7 @@ function boat(x, y, color, player){
         this.drawBoat(this.boats[i]);
       }
       
-      document.getElementById('score').innerHTML = 'Fish Caught:   Player 1: ' +this.boats[0].haul+'    Player 2: ' +this.boats[1].haul ;
+      document.getElementById('score').innerHTML = 'Fish Caught:   Player 1: ' +this.boats[0].haul+'    Player 2: ' +this.boats[1].haul+'     -    Population: '+this.Fishes.length ;
       this.context.putImageData(this.imageData, 0, 0);
     }
   };
