@@ -9,7 +9,7 @@ Ocean = (function() {
 
   var population = 5;
   var capacity = 120;
-  var growthFactor = .6;
+  var growthFactor = .4;
   var interval = 1000 / (20 /* fps */);
   var region = [6,13];
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
@@ -180,6 +180,49 @@ function onKeyDown(event) {
 
         return(delta);
         }
+
+      function encodeSegment(up, down, left, right){
+     var delta = [0,0];
+     var segment = -1;
+
+      if(left && right)
+          delta[0] = 0;
+     else if(left)
+          delta[0] = -1;
+      else if(right)
+          delta[0] = 1;
+   
+      if(up && down)
+              delta[1] = 0;
+     else if (up)
+              delta[1] = -1;
+      else if (down)
+              delta[1] = 1;
+
+            if (delta[0] == 1 && delta[1]  ==0)
+                  segment = 0;
+            else if(delta[0] == 1 && delta[1] == 1)
+                  segment = 1;
+            else if(delta[0] == 0 && delta[1] == 1)
+                  segment = 2;
+            else if(delta[0] == -1 && delta[1] == 1)
+                  segment = 3;
+            else if(delta[0] == -1 && delta[1] == 0)
+                  segment = 4;
+            else if(delta[0] == -1 && delta[1] == -1)
+                  segment = 5;
+            else if(delta[0] == 0 && delta[1] == -1)
+                  segment = 6;
+            else if(delta[0] == 1 && delta[1] == -1)
+                  segment = 7;
+            else if(delta[0] == 0 && delta[1] == 0)
+                  segment = -1;
+             else 
+                   console.log("weirdencode");
+
+
+    return(segment);
+    }
 
 
 
@@ -402,7 +445,7 @@ function boat(x, y, color, player){
          this.color = color;
 
          this.haul =0;
-         this.segment = 0;
+         this.segment = -1;
 
           // console.log(this.color);
       } 
@@ -411,35 +454,33 @@ function boat(x, y, color, player){
 
         toot: function(){
           var desiredSegment = 0;
-
+          var delta = [0,0];
         if(this.player == 1)
-        {
-          if (keyD == true) 
-            this.x ++;
-          
-          if (keyS == true) 
-            this.y ++;
-        
-          if (keyA == true) 
-            this.x--;
-          
-          if (keyW == true) 
-            this.y--;
-        }
+          desiredSegment = encodeSegment(keyW, keyS, keyA, keyD);
         else
-        {
-           if (keyRight == true) 
-            this.x ++;
-          
-          if (keyDown == true) 
-            this.y ++;
-        
-          if (keyLeft == true) 
-            this.x--;
-          
-          if (keyUp == true) 
-            this.y--;
-         } 
+          desiredSegment = encodeSegment(keyUp, keyDown, keyLeft, keyRight);
+
+           if(desiredSegment == -1)
+             delta = [0,0];
+          else
+          {
+              d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
+                                                  //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
+              d = SegmentWrapLogicLUT[d]*-1;
+                if(d==-9)
+                  d=(Math.random()>.5 ? -1 : 1);
+            this.segment+=d;
+
+            this.segment = (this.segment+8)%8;
+            delta = decodeSegment(this.segment);
+          }
+
+         
+
+          this.x += delta[0];
+          this.y += delta[1];
+
+
         // if(this.player == 1)
         // {
         //   if (keyD == true) 
