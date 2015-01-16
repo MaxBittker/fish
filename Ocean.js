@@ -9,7 +9,7 @@ Ocean = (function() {
 
   var population = 25;
   var capacity = 120;
-  var growthFactor = .4;
+  var growthFactor = .2;
   var interval = 1000 / (20 /* fps */);
   var region = [6,13];
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
@@ -408,7 +408,7 @@ function fish(x, y, color){
 
           for(var i =0; i < boats.length;i++)
           {
-             if(this.getDistance([boats[i].netPos[0],boats[i].netPos[1]])<2)
+             if(this.getDistance([boats[i].netPos[0],boats[i].netPos[1]])<3)
               {
                 listOfFish.splice(listOfFish.indexOf(this),1);
                 boats[i].haul++;
