@@ -7,7 +7,7 @@ Ocean = (function() {
   var width = 100;
   var height = 100;
 
-  var population = 5;
+  var population = 25;
   var capacity = 120;
   var growthFactor = .4;
   var interval = 1000 / (20 /* fps */);
@@ -15,54 +15,98 @@ Ocean = (function() {
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
   var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1];
 
-  var Sprite=[[0,0,0,0,0, //(yes, this is what you think it is)
-               1,0,1,1,0,
-               1,1,1,1,1,
-               1,0,1,1,0,
-               0,0,0,0,0],//0
+  var FishSprite=[[0,0,0,0,0, //(yes, this is what you think it is)
+                   1,0,1,1,0,
+                   1,1,1,1,1,
+                   1,0,1,1,0,
+                   0,0,0,0,0],//0
 
-              [0,0,1,1,1,
-               0,0,1,1,1,
-               0,1,1,1,1,
-               1,1,1,0,0,
-               0,1,0,0,0],//1
+                  [0,0,1,1,1,
+                   0,0,1,1,1,
+                   0,1,1,1,1,
+                   1,1,1,0,0,
+                   0,1,0,0,0],//1
 
-              [0,0,1,0,0,
-               0,1,1,1,0,
-               0,1,1,1,0,
-               0,0,1,0,0,
-               0,1,1,1,0],//2//
+                  [0,0,1,0,0,
+                   0,1,1,1,0,
+                   0,1,1,1,0,
+                   0,0,1,0,0,
+                   0,1,1,1,0],//2//
 
-              [1,1,1,0,0,
-               1,1,1,0,0,
-               1,1,1,1,0,
-               0,0,1,1,1,
-               0,0,0,1,0],//3//
+                  [1,1,1,0,0,
+                   1,1,1,0,0,
+                   1,1,1,1,0,
+                   0,0,1,1,1,
+                   0,0,0,1,0],//3//
 
-              [0,0,0,0,0,
-               0,1,1,0,1,
-               1,1,1,1,1,
-               0,1,1,0,1,
-               0,0,0,0,0],//4//
+                  [0,0,0,0,0,
+                   0,1,1,0,1,
+                   1,1,1,1,1,
+                   0,1,1,0,1,
+                   0,0,0,0,0],//4//
 
-              [0,0,0,1,0,
-               0,0,1,1,1,
-               1,1,1,1,0,
-               1,1,1,0,0,
-               1,1,1,0,0],//5//
+                  [0,0,0,1,0,
+                   0,0,1,1,1,
+                   1,1,1,1,0,
+                   1,1,1,0,0,
+                   1,1,1,0,0],//5//
 
-              [0,1,1,1,0,
-               0,0,1,0,0,
-               0,1,1,1,0,
-               0,1,1,1,0,
-               0,0,1,0,0],//6//
+                  [0,1,1,1,0,
+                   0,0,1,0,0,
+                   0,1,1,1,0,
+                   0,1,1,1,0,
+                   0,0,1,0,0],//6//
 
-              [0,1,0,0,0,
-               1,1,1,0,0,
-               0,1,1,1,1,
-               0,0,1,1,1,
-               0,0,1,1,1],//7
-               ]
+                  [0,1,0,0,0,
+                   1,1,1,0,0,
+                   0,1,1,1,1,
+                   0,0,1,1,1,
+                   0,0,1,1,1],//7
+                   ];
+
+var BoatSprite=[
+[
+0,0,0,0,0,0,0,
+1,1,1,1,0,0,0,
+1,1,1,1,1,1,0,
+1,1,1,1,1,1,1,//0
+1,1,1,1,1,1,0,
+1,1,1,1,0,0,0,
+0,0,0,0,0,0,0],
+
+[
+0,0,0,0,1,1,1,
+0,0,1,1,1,1,1,
+0,1,1,1,1,1,1,
+1,1,1,1,1,1,0,//1
+1,1,1,1,1,1,0,
+0,1,1,1,1,0,0,
+0,0,1,1,0,0,0]];
+
+var NetSprite=[
+[
+0,0,0,0,1,0,1,0,1,
+0,0,0,1,0,1,0,1,0,
+0,0,1,0,1,0,1,0,1,
+0,1,0,1,0,1,0,1,0,
+1,0,1,0,1,0,1,0,1,
+0,1,0,1,0,1,0,1,0,//0
+0,0,1,0,1,0,1,0,1,
+0,0,0,1,0,1,0,1,0,
+0,0,0,0,0,0,1,0,1],
+
+[
+0,0,1,0,0,0,0,0,0,
+0,1,0,1,0,0,0,0,0,//1
+1,0,1,0,1,0,0,0,0,
+0,1,0,1,0,1,0,0,0,
+1,0,1,0,1,0,1,0,0,
+0,1,0,1,0,1,0,1,0,
+1,0,1,0,1,0,1,0,1,
+0,1,0,1,0,1,0,1,0,
+0,0,1,0,1,0,1,0,0]];
+
+
 
   window.addEventListener("keydown", onKeyDown, false);
   window.addEventListener("keyup", onKeyUp, false);
@@ -364,7 +408,7 @@ function fish(x, y, color){
 
           for(var i =0; i < boats.length;i++)
           {
-             if(this.getDistance([boats[i].x,boats[i].y])<2)
+             if(this.getDistance([boats[i].netPos[0],boats[i].netPos[1]])<2)
               {
                 listOfFish.splice(listOfFish.indexOf(this),1);
                 boats[i].haul++;
@@ -447,8 +491,12 @@ function boat(x, y, color, player){
          this.player = player;
          this.color = color;
 
+         this.segment = 0;
+         this.ropePos = [this.x-1,this.y,0];
+         this.ropePos2 = [this.x-2,this.y,0]; //(and segment)
+         this.netPos  = [this.x-3,this.y,0];
+
          this.haul =0;
-         this.segment = -1;
 
           // console.log(this.color);
       } 
@@ -458,6 +506,9 @@ function boat(x, y, color, player){
         toot: function(){
           var desiredSegment = 0;
           var delta = [0,0];
+
+          
+
         if(this.player == 1)
           desiredSegment = encodeSegment(keyW, keyS, keyA, keyD);
         else
@@ -468,8 +519,11 @@ function boat(x, y, color, player){
               this.moving = false;}
           else
           {
-             this.moving = true;
+              this.moving = true;
 
+              this.netPos   = this.ropePos2.slice(0);  //shift net and rope
+              this.ropePos2 = this.ropePos.slice(0);
+              this.ropePos  = [this.x,this.y,this.segment];
               d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
                                                   //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
               d = SegmentWrapLogicLUT[d]*-1;
@@ -481,20 +535,21 @@ function boat(x, y, color, player){
             delta = decodeSegment(this.segment);
           }
 
-         
+          
 
           this.x += delta[0];
           this.y += delta[1];
+          
 
 
         if(this.x>=width-1)
             this.x = width-1;
-          if(this.x<=1)
-            this.x = 1;
+          if(this.x<=0)
+            this.x = 0;
           if(this.y>=height-1)
             this.y = height-1;
-          if(this.y<=1)
-            this.y = 1;
+          if(this.y<=0)
+            this.y = 0;
         }
 
         
@@ -571,7 +626,7 @@ function boat(x, y, color, player){
        var segment = (8-fish.segment);
        for (var sx = 0; sx < this.scale; sx++) {
             for (var sy = 0; sy < this.scale; sy++) {
-              if(Sprite[segment%8][sx+(5*sy)])  
+              if(FishSprite[segment%8][sx+(5*sy)])  
               {
               var i = (((y * this.scale + sy) * width * this.scale) + (x * this.scale + sx)) * 4;
               this.imageData.data[i]   = R%255;
@@ -592,12 +647,36 @@ function boat(x, y, color, player){
         var R = (color & 0xff0000) >>> 16;
         var G = (color & 0x00ff00) >>> 8;
         var B = (color & 0x0000ff) >>> 0;
-       var segment = (8-fish.segment);
-       for (var sx = 0; sx < this.scale; sx++) {
-            for (var sy = 0; sy < this.scale; sy++) {
-              if(true)//Sprite[segment%8][sx+(5*sy)])  
+       var segment = (8-boat.segment);
+       var sprite = BoatSprite[segment%2];
+       var sps  = 6;
+
+       var xpos = function (x,y) {
+        if(segment ==2)
+          return(sps-y);
+        else if (segment==6)
+          return(y);
+        else if(segment>6 || segment<2)
+         return(x);
+        else
+          return(sps-x);
+       }
+       var ypos = function (y,x) {
+        if(segment ==2)
+          return(sps-x);
+        else if(segment==6)
+          return(x);
+        else if(segment<4)
+         return(y);
+        else
+          return(sps-y);
+       }
+
+       for (var sx = 0; sx < 7; sx++) {
+            for (var sy = 0; sy < 7; sy++) {
+              if(sprite[(xpos(sx,sy))+(7*ypos(sy,sx))])  
               {
-              var i = (((y * this.scale + sy) * width * this.scale) + (x * this.scale + sx)) * 4;
+              var i = (((y * this.scale + (sy-1)) * width * this.scale) + (x * this.scale + (sx-1))) * 4;
               this.imageData.data[i]   = R%255;
               this.imageData.data[i+1] = G%255;
               this.imageData.data[i+2] = B%255;
@@ -605,6 +684,27 @@ function boat(x, y, color, player){
               }      
             }
           }
+      
+        segment = (8-boat.netPos[2]);
+        sprite = NetSprite[segment%2];
+        sps  = 8;
+        x = boat.netPos[0];
+        y = boat.netPos[1];
+
+       for (var sx = 0; sx < 9; sx++) {
+            for (var sy = 0; sy < 9; sy++) {
+              if(sprite[(xpos(sx,sy))+(9*ypos(sy,sx))])  
+              {
+              var i = (((y * this.scale + (sy-1)) * width * this.scale) + (x * this.scale + (sx-1))) * 4;
+              this.imageData.data[i]   = 255;
+              this.imageData.data[i+1] = 200;
+              this.imageData.data[i+2] = 200;
+              this.imageData.data[i+3] = 255;
+              }      
+            }
+          }
+
+      
 
 
     },
