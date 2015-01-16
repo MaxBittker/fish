@@ -417,7 +417,7 @@ function fish(x, y, color){
 
               if(this.getDistance([boats[i].x,boats[i].y])<30)
               {
-              var noise = boats[i].moving ? 8 : 2;
+              var noise = boats[i].moving ? 8 : 3;
               sumvector[0] += (this.x == boats[i].x) ?  0 :  Math.pow((this.x-boats[i].x)/10,-1)* noise; 
               sumvector[1] += (this.y == boats[i].y) ?  0 :  Math.pow((this.y-boats[i].y)/10,-1)* noise;
               }
@@ -579,7 +579,7 @@ function boat(x, y, color, player){
 
   function Ocean(equation, canvas) {
     this.Fishes    = init(population); // spawn new fish
-    this.boats      = [new boat(10,10,10046464,1),new boat(90,90, 12373460,2)];
+    this.boats      = [new boat(10,10,5714700,1),new boat(90,90, 7702428,2)];
     this.canvas    = canvas;
     this.scale     = canvas.getAttribute('width') / width;
     console.log(this.scale);
@@ -772,7 +772,7 @@ function boat(x, y, color, player){
         this.drawBoat(this.boats[i]);
       }
       
-      document.getElementById('score').innerHTML = 'Fish Caught:   Player 1: ' +this.boats[0].haul+'    Player 2: ' +this.boats[1].haul+'     -    Population: '+this.Fishes.length ;
+      document.getElementById('score').innerHTML = 'Fish Caught:   WASD: ' +this.boats[0].haul+'    ArrowKeys: ' +this.boats[1].haul+'     -    Population: '+this.Fishes.length ;
       this.context.putImageData(this.imageData, 0, 0);
     }
   };
