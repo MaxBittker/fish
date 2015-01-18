@@ -4,7 +4,7 @@ Ocean = (function() {
   var width = 100;
   var height = 100;
 
-  var population = 120;
+  var population = 45;
   var capacity = 120;
   var growthFactor = .2;
   var interval = 1000 / (25 /* fps */);
