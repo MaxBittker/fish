@@ -422,9 +422,9 @@ function boat(x, y, color, player){
          this.color = color;
 
          this.segment = (player ==1)? 0 : 4;
-         this.ropePos = [this.x-(1*player),this.y,0];
-         this.ropePos2= [this.x-(2*player),this.y,0]; //(and segment)
-         this.netPos  = [this.x-(3*player),this.y,0];
+         this.ropePos = [this.x-(1*player),this.y,this.segment];
+         this.ropePos2= [this.x-(2*player),this.y,this.segment]; //(and segment)
+         this.netPos  = [this.x-(3*player),this.y,this.segment];
 
          this.haul =0;
 
