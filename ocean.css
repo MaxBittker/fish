@@ -34,3 +34,8 @@ div[data-formula] canvas {
     float: left;
     margin-right: 10px;
 }
+
+.stop-scrolling {
+  height: 100%;
+  overflow: hidden;
+}

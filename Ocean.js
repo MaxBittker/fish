@@ -450,11 +450,8 @@ function boat(x, y, color, player){
           else
           {
               this.moving = true;
-
-              this.netPos   = this.ropePos2.slice(0);  //shift net and rope
-              this.ropePos2 = this.ropePos.slice(0);
-              this.ropePos  = [this.x,this.y,this.segment];
-
+              TempStorage = [this.x,this.y,this.segment];
+              
               d = (this.segment-desiredSegment)+7; //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] (start-end)
                                                   //    [ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]
               d = SegmentWrapLogicLUT[d]*-1;
@@ -477,6 +474,12 @@ function boat(x, y, color, player){
             this.y = height-1;
           if(this.y<=0)
             this.y = 0;
+          
+          if(this.moving && ((TempStorage[0]!=this.x) || (TempStorage[1]!=this.y))){
+          this.netPos   = this.ropePos2.slice(0);  //shift net and rope
+          this.ropePos2 = this.ropePos.slice(0);
+          this.ropePos  = TempStorage;
+          }
         }
 
       };
@@ -628,7 +631,7 @@ function boat(x, y, color, player){
        for (var sx = 0; sx < 7; sx++) {
             for (var sy = 0; sy < 7; sy++) {
               spritevalue =sprite[(xpos(sx,sy))+(7*ypos(sy,sx))];
-              if(spritevalue)  
+              if(spritevalue && (y+sy>=0))  
               {
               var i = (((y * this.scale + (sy-1)) * width * this.scale) + (x * this.scale + (sx-1)))*4;
               this.imageData.data[i]   = R%255;
