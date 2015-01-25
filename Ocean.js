@@ -4,11 +4,12 @@ Ocean = (function() {
   var width = 100;
   var height = 100;
 
-  var population = 45;
-  var capacity = 120;
+  var population = 40;
+  var capacity = 150;
   var growthFactor = .2;
   var interval = 1000 / (25 /* fps */);
   var region = [6,13];
+  var frame = 1;
                      //   [-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4, 5, 6, 7] 
   var SegmentWrapLogicLUT=[ 1, 1, 1, 9,-1,-1,-1,0,1,1,1,9,-1,-1,-1]; //this is a look up table for whether to rotate left or right
 
@@ -207,6 +208,7 @@ function fish(x, y, color){
          this.dy = 1;
          this.segment =  Math.round((Math.random() * 100))%8;
          this.color = color;
+         this.closestFish = this; 
           // console.log(this.color);
       } 
 
@@ -315,6 +317,8 @@ function fish(x, y, color){
 
           }
 
+          this.closestFish = closestThing;
+          
           if(closestThing===this)
             alone =true;
 
@@ -337,11 +341,8 @@ function fish(x, y, color){
           for(var i =0; i < boats.length;i++)
           {
              if(this.getDistance([boats[i].netPos[0],boats[i].netPos[1]])<3)
-              {
-              listOfFish.splice(listOfFish.indexOf(this),1);
-              boats[i].haul++;
-                // console.log(boats[i].player, boats[i].haul);
-              }
+              boats[i].netted(listOfFish, this);
+              
 
               if(this.getDistance([boats[i].x,boats[i].y])<30)
               {
@@ -406,7 +407,13 @@ function fish(x, y, color){
           },
 
         spawn: function(listOfFish){
-          var singleFish = new fish(this.x+(Math.random()>.5 ? -1 : 1),this.y+(Math.random()>.5 ? -1 : 1),this.color);
+
+          var R = Math.round((((this.color & 0xff0000)+(this.closestFish.color & 0xff0000)+(Math.random()*0xff0000<<0))/3)) & 0xff0000;
+          var G = Math.round((((this.color & 0x00ff00)+(this.closestFish.color & 0x00ff00)+(Math.random()*0x00ff00<<0))/3)) & 0x00ff00;
+          var B = Math.round((((this.color & 0x0000ff)+(this.closestFish.color & 0x0000ff)+(Math.random()*0x0000ff<<0))/3)) & 0x0000ff;
+
+          var color = R+G+B;//((this.color + this.closestFish.color) /2);
+          var singleFish = new fish(this.x+(Math.random()>.5 ? -1 : 1),this.y+(Math.random()>.5 ? -1 : 1),color);
           listOfFish.push(singleFish);
         }
 
@@ -427,12 +434,28 @@ function boat(x, y, color, player){
          this.netPos  = [this.x-(3*player),this.y,this.segment];
 
          this.haul =0;
+         this.rate =0;
+         this.ledger = [];
 
           // console.log(this.color);
       } 
 
       boat.prototype = {
 
+        netted: function(listOfFish,fish){
+          listOfFish.splice(listOfFish.indexOf(fish),1);
+          this.haul++;
+          this.rate++;
+          this.ledger.unshift(frame);
+          },
+         calculateRate: function(){
+          for(var i=0; i<this.ledger.length; i++){
+            if (this.ledger[i] < (frame - (60000/interval)))
+            this.ledger.splice(i,1);
+          }
+
+          this.rate = this.ledger.length;
+          },
         toot: function(){
           var desiredSegment = 0;
           var delta = [0,0];
@@ -513,7 +536,6 @@ function boat(x, y, color, player){
     this.context   = canvas.getContext('2d');
     this.imageData = this.context.createImageData(width * this.scale, height * this.scale);
     this.then      = +Date.now();
-    this.frame     = 1;
     this.paused    = false;
     this.GrowthAccumulator = 0;
   }
@@ -539,7 +561,7 @@ function boat(x, y, color, player){
       if (delta > interval) {
         this.then = now;
         this.drawFrame();
-        this.frame++;
+        frame++;
       }
     },
 
@@ -730,13 +752,13 @@ function boat(x, y, color, player){
     drawFrame: function() {
     
       this.context.fillRect(0,0,500,500);
-      offset =79+ Math.round( (Math.sin(this.frame/3) *2)  + (Math.random()*2)) ; 
+      offset =79+ Math.round( (Math.sin(frame/3) *2)  + (Math.random()*2)) ; 
       this.context.fillStyle = '#0310'+offset.toString(16);
       this.context.fill();
 
      this.imageData = this.context.getImageData(0, 0, 500, 500);
       
-      this.Growth(this.Fishes);
+      
 
       var tempFish;
 
@@ -746,12 +768,16 @@ function boat(x, y, color, player){
         this.drawFish(tempFish);
       }
 
+      this.Growth(this.Fishes);
+
       for(var i =0; i<this.boats.length; i++){
         this.boats[i].toot();
+        this.boats[i].calculateRate();
         this.drawBoat(this.boats[i]);
       }
       
-      document.getElementById('score').innerHTML = 'Fish Caught:   WASD: ' +this.boats[0].haul+'    ArrowKeys: ' +this.boats[1].haul+'     -    Population: '+this.Fishes.length ;
+      document.getElementById('score').innerHTML = 'Catch Rate:   WASD: ' +this.boats[0].rate.toFixed(0)+'    ArrowKeys: ' +this.boats[1].rate.toFixed(0)+'     -    Population: '+this.Fishes.length ;
+      //document.getElementById('score').innerHTML = 'Fish Caught:   WASD: ' +this.boats[0].haul+'    ArrowKeys: ' +this.boats[1].haul+'     -    Population: '+this.Fishes.length ;
      
       this.context.putImageData(this.imageData, 0, 0);
        
